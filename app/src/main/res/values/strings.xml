@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Filmes Famosos</string>
+
+    <string name="error_message">
+        Erro ao acessar o catálago de filmes.
+    </string>
+    <string name="top">Top</string>
+    <string name="popular">Popular</string>
+    <string name="poster_thumbnail">Poster Thumbnail</string>
+    <string name="label_release_date">Lançamento:</string>
+
+</resources>
