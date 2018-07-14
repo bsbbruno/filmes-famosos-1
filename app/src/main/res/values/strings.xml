@@ -8,5 +8,6 @@
     <string name="popular">Popular</string>
     <string name="poster_thumbnail">Poster Thumbnail</string>
     <string name="label_release_date">Lançamento:</string>
-
+    <string name="no_internet_connection">Sem conexão</string>
+    <string name="retry">Atualize</string>
 </resources>

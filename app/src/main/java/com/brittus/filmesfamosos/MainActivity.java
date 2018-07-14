@@ -1,8 +1,7 @@
 package com.brittus.filmesfamosos;
 
-import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -15,13 +14,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.brittus.filmesfamosos.model.Movie;
-import com.brittus.filmesfamosos.utils.MovieJsonUtils;
+import com.brittus.filmesfamosos.utils.AsyncTaskDelegate;
+import com.brittus.filmesfamosos.utils.MovieService;
 import com.brittus.filmesfamosos.utils.NetworkUtils;
 
-import java.net.URL;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler {
+public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler, AsyncTaskDelegate {
 
     private static final String POPULAR_MOVIES = "/movie/popular";
     private static final String TOP_MOVIES = "/movie/top_rated";
@@ -56,9 +55,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     @Override
     public void onClick(Movie movie) {
-        Context context = this;
-        Class destinationClass = DetailActivity.class;
-        Intent intentToStartDetailActivity = new Intent(context, destinationClass);
+        Intent intentToStartDetailActivity = new Intent(this, DetailActivity.class);
         intentToStartDetailActivity.putExtra(Intent.EXTRA_TEXT, movie);
         startActivity(intentToStartDetailActivity);
     }
@@ -90,9 +87,23 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     }
 
-    private void loadMovieData(String order) {
-        showMovieDataView();
-        new FetchMovieTask().execute(order);
+    private void loadMovieData(String sortBy) {
+
+        if (NetworkUtils.isNetworkConnected(MainActivity.this)) {
+            mLoadingIndicator.setVisibility(View.VISIBLE);
+            showMovieDataView();
+            new MovieService(MainActivity.this).execute(sortBy);
+        } else {
+            View view = getWindow().getDecorView().getRootView();
+            Snackbar snackbar = Snackbar.make(view , getString(R.string.no_internet_connection), Snackbar.LENGTH_LONG);
+            snackbar.setAction(getString(R.string.retry), new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    loadMovieData(TOP_MOVIES);
+                }
+            });
+            snackbar.show();
+        }
 
     }
 
@@ -106,47 +117,16 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         mErrorMessageDisplay.setVisibility(View.VISIBLE);
     }
 
-    class FetchMovieTask extends AsyncTask<String, Void, List<Movie>> {
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mLoadingIndicator.setVisibility(View.VISIBLE);
-        }
+    @Override
+    public void processFinish(Object movies) {
+        mLoadingIndicator.setVisibility(View.INVISIBLE);
 
-        @Override
-        protected List<Movie> doInBackground(String... params) {
-            if (params.length == 0) {
-                return null;
-            }
-
-            String route = params[0];
-            URL movieRequestUrl = NetworkUtils.buildUrl(route);
-
-            try {
-                String jsonMoviesResponse = NetworkUtils.getResponseFromHttpUrl(movieRequestUrl);
-
-                return MovieJsonUtils.getMoviesFromJson(jsonMoviesResponse);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-
-        }
-
-        @Override
-        protected void onPostExecute(List<Movie> movies) {
-
-            mLoadingIndicator.setVisibility(View.INVISIBLE);
-
-            if (movies != null) {
-                showMovieDataView();
-                mMovieAdapter.setmMovies(movies);
-            } else {
-                showErrorMessage();
-            }
-
+        if (movies != null) {
+            showMovieDataView();
+            mMovieAdapter.setmMovies((List<Movie>) movies);
+        } else {
+            showErrorMessage();
         }
     }
 }

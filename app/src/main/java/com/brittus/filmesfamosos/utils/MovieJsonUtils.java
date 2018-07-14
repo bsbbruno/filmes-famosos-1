@@ -32,8 +32,8 @@ public final class MovieJsonUtils {
 
             JSONObject movieObj = resultsMovies.getJSONObject(i);
 
-            Movie movie = new Movie(movieObj.getLong(ID),movieObj.getString(TITLE),movieObj.getString(RELEASE_DATE),
-                    movieObj.getString(POSTER_PATH), movieObj.getDouble(VOTE_AVERAGE), movieObj.getString(OVERVIEW));
+            Movie movie = new Movie(movieObj.optLong(ID),movieObj.optString(TITLE),movieObj.optString(RELEASE_DATE),
+                    movieObj.optString(POSTER_PATH), movieObj.optDouble(VOTE_AVERAGE), movieObj.optString(OVERVIEW));
 
             movies.add(movie);
 
